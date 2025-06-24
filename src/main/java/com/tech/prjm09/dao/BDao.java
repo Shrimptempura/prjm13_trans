@@ -6,18 +6,22 @@ import java.sql.ResultSet;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 
+import org.eclipse.tags.shaded.org.apache.bcel.generic.RETURN;
+
 import com.tech.prjm09.dto.BDto;
 import com.tech.prjm09.util.DBCon;
 import com.tech.prjm09.util.DBUtil;
 
 public class BDao {
+	
+	Connection conn = null;
 
 	public ArrayList<BDto> list() {
 
 		ArrayList<BDto> dtos = new ArrayList<>();
 		PreparedStatement pstmt = null;
 		ResultSet rs = null;
-		Connection conn = null;
+//		Connection conn = null;
 
 		String sql = "select bid, bname, btitle, bcontent, "
 				+ "bdate, bhit, bgroup, bstep, bindent "
@@ -57,7 +61,7 @@ public class BDao {
 	public void write(String bname, String btitle, String bcontent) {
 
 		PreparedStatement pstmt = null;
-		Connection conn = null;
+//		Connection conn = null;
 
 		String sql = "insert into replyboard(bid, bname, btitle, " + "bcontent, bdate, bhit, bgroup, bstep, bindent) "
 				+ "values(replyboard_seq.nextval, ?, ?, " + "?, sysdate, 0, replyboard_seq.currval, 0, 0)";
@@ -84,7 +88,7 @@ public class BDao {
 		upHit(sbid);
 
 		BDto dto = null;
-		Connection conn = null;
+//		Connection conn = null;
 		PreparedStatement pstmt = null;
 		ResultSet rs = null;
 
@@ -125,7 +129,7 @@ public class BDao {
 	public BDto modifyView(String sbid) {
 
 		BDto dto = null;
-		Connection conn = null;
+//		Connection conn = null;
 		PreparedStatement pstmt = null;
 		ResultSet rs = null;
 
@@ -165,7 +169,7 @@ public class BDao {
 
 	public void upHit(String sbid) {
 
-		Connection conn = null;
+//		Connection conn = null;
 		PreparedStatement pstmt = null;
 
 		try {
@@ -184,7 +188,7 @@ public class BDao {
 
 	public void modify(String bid, String bname, String btitle, String bcontent) {
 
-		Connection conn = null;
+//		Connection conn = null;
 		PreparedStatement pstmt = null;
 
 		String sql = "update replyboard set bname = ?, btitle = ?, " + "bcontent = ? where bid = ?";
@@ -211,10 +215,7 @@ public class BDao {
 			String bgroup, String bstep, String bindent) {
 		
 //		transaction
-		
-		replyShape(bgroup, bstep);
-
-		Connection conn = null;
+//		Connection conn = null;
 		PreparedStatement pstmt = null;
 
 		String query = "insert into replyboard(bid, bname, btitle, "
@@ -223,6 +224,13 @@ public class BDao {
 
 		try {
 			conn = DBCon.getConnection();
+			// autocommit 변경
+			conn.setAutoCommit(false); // 자동커밋 해제
+			
+			int rn1 = replyShape(bgroup, bstep, conn);
+			System.out.println("rn111111: " + rn1);
+			
+			int rn2 = 0;
 			
 			pstmt = conn.prepareStatement(query);
 			pstmt.setString(1, bname);
@@ -232,7 +240,17 @@ public class BDao {
 			pstmt.setInt(5, Integer.parseInt(bstep) + 1);
 			pstmt.setInt(6, Integer.parseInt(bindent) + 1);
 			
-			int rn = pstmt.executeUpdate();
+			rn2 = pstmt.executeUpdate();
+			System.out.println("rn2222222: " + rn2);
+			
+			if (rn1 >= 0 && rn2 >= 1) {
+				conn.commit();
+				System.out.println("commmmmmmmmit");
+			} else {
+				conn.rollback();
+				System.out.println("rolllllllback");
+			}
+			
 		} catch (Exception e) {
 			e.printStackTrace();
 		} finally {
@@ -244,7 +262,7 @@ public class BDao {
 	public BDto reply_view(String sbid) {
 
 		BDto dto = null;
-		Connection conn = null;
+//		Connection conn = null;
 		PreparedStatement pstmt = null;
 		ResultSet rs = null;
 
@@ -283,28 +301,30 @@ public class BDao {
 		return dto;
 	}
 	
-	public void replyShape(String strgroup, String strstep) {
+	public int replyShape(String strgroup, String strstep, Connection tracon) {
 		
-		Connection conn = null;
+//		Connection conn = null;
 		PreparedStatement pstmt = null;
+		int rn = 0;
 
 		String query = "update replyboard set bstep = bstep + 1 "
 				+ "where bgroup = ? and bstep > ?";
 
 		try {
-			conn = DBCon.getConnection();
+//			conn = DBCon.getConnection();
 			
-			pstmt = conn.prepareStatement(query);
+			pstmt = tracon.prepareStatement(query);
 			pstmt.setInt(1, Integer.parseInt(strgroup));
 			pstmt.setInt(2, Integer.parseInt(strstep));
 			
-			int rn = pstmt.executeUpdate();
+			rn = pstmt.executeUpdate();
 		} catch (Exception e) {
 			e.printStackTrace();
 		} finally {
 			DBUtil.close(pstmt);
-			DBUtil.close(conn);
+//			DBUtil.close(conn);
 		}
+		return rn;
 	}
 
 }
