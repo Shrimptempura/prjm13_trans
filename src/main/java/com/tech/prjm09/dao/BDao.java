@@ -307,6 +307,7 @@ public class BDao {
 		PreparedStatement pstmt = null;
 		int rn = 0;
 
+		// bstep > ? 댓글이 끼어들때 step을 한칸 밈
 		String query = "update replyboard set bstep = bstep + 1 "
 				+ "where bgroup = ? and bstep > ?";
 
