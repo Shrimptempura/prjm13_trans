@@ -19,7 +19,7 @@ import jakarta.servlet.http.HttpServletRequest;
 
 @Controller
 public class BController {
-	
+	// dev
 	private BCommand command;
 
 	@RequestMapping("list")
@@ -30,6 +30,7 @@ public class BController {
 		command.execute(model);
 		
 		return "list";
+		
 	}
 	
 	@RequestMapping("write_view")
